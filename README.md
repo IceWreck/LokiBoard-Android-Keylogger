@@ -21,6 +21,19 @@ Note: You need to have physical access to the device for use.
 
 ## ScreenShots
 
+![screenshot](https://raw.githubusercontent.com/IceWreck/LokiBoard-Android-Keylogger/master/screenshots/1.png)
+![screenshot](https://raw.githubusercontent.com/IceWreck/LokiBoard-Android-Keylogger/master/screenshots/2.png)
+![screenshot](https://raw.githubusercontent.com/IceWreck/LokiBoard-Android-Keylogger/master/screenshots/3.png)
+![screenshot](https://raw.githubusercontent.com/IceWreck/LokiBoard-Android-Keylogger/master/screenshots/4.png)
+![screenshot](https://raw.githubusercontent.com/IceWreck/LokiBoard-Android-Keylogger/master/screenshots/5.png)
+![screenshot](https://raw.githubusercontent.com/IceWreck/LokiBoard-Android-Keylogger/master/screenshots/6.png)
+![screenshot](https://raw.githubusercontent.com/IceWreck/LokiBoard-Android-Keylogger/master/screenshots/7.png)
+![screenshot](https://raw.githubusercontent.com/IceWreck/LokiBoard-Android-Keylogger/master/screenshots/8.png)
+![screenshot](https://raw.githubusercontent.com/IceWreck/LokiBoard-Android-Keylogger/master/screenshots/9.png)
+
+
+## Obligatory Notice
+This was designed as a proof of concept and not for any malacious purposes.
 
 ## Credits
 Based on the Android Open Source Project Keyboard and Simple Keyboard
