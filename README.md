@@ -5,6 +5,8 @@ Android Keylogging Keyboard
 
 Build it from source or use [prebuilt apks.](https://github.com/IceWreck/LokiBoard-Android-Keylogger/blob/master/releases/LokiBoard-1.0.apk?raw=true) 
 
+[Play Store](https://play.google.com/store/apps/details?id=com.abifog.lokiboard) 
+
 
 ## Usage
 
