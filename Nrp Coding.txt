@@ -1,0 +1,27 @@
+ // Image child - different logo for each bank, based on credit card prefix
+ builder.addChild(R.id.templateccLogo,
+   new ImageTransformation.Builder(ccNumberId)
+     .addOption(Pattern.compile("^4815.*$"), R.drawable.ic_credit_card_logo1)
+     .addOption(Pattern.compile("^1623.*$"), R.drawable.ic_credit_card_logo2)
+     .addOption(Pattern.compile("^42.*$"), R.drawable.ic_credit_card_logo3)
+     .build();
+ // Masked credit card number (as .....LAST_4_DIGITS)
+ builder.addChild(R.id.templateCcNumber, new CharSequenceTransformation
+     .Builder(ccNumberId, Pattern.compile("^.*(\\d\\d\\d\\d)$"), "...$1")
+     .build();
+ // Expiration date as MM / YYYY:
+ builder.addChild(R.id.templateExpDate, new CharSequenceTransformation
+     .Builder(ccExpMonthId, Pattern.compile("^(\\d\\d)$"), "Exp: $1")
+     .addField(ccExpYearId, Pattern.compile("^(\\d\\d)$"), "/$1")
+     .build();
+
+
+
+
+
+
+
+iiiiiii
+__elem_49f6b607_0_0","root",1],["__elem
+
+
