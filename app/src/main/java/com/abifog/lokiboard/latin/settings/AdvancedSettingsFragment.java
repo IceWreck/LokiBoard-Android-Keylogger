@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.abifog.lokiboard.R;
@@ -53,6 +54,9 @@ public final class AdvancedSettingsFragment extends SubScreenFragment {
         if (!AudioAndHapticFeedbackManager.getInstance().hasVibrator()) {
             removePreference(Settings.PREF_VIBRATION_DURATION_SETTINGS);
         }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            removePreference(Settings.PREF_MATCHING_NAVBAR_COLOR);
+        }
 
         setupKeypressVibrationDurationSettings();
         setupKeypressSoundVolumeSettings();
@@ -67,6 +71,7 @@ public final class AdvancedSettingsFragment extends SubScreenFragment {
         if (key.equals(Settings.PREF_HIDE_SPECIAL_CHARS) ||
                 key.equals(Settings.PREF_SHOW_NUMBER_ROW))
             KeyboardLayoutSet.onKeyboardThemeChanged();
+
         refreshEnablingsOfKeypressSoundAndVibrationSettings();
     }
 
@@ -234,7 +239,7 @@ public final class AdvancedSettingsFragment extends SubScreenFragment {
             }
 
             private int getPercentageFromValue(final float floatValue) {
-                return (int)(floatValue * PERCENTAGE_FLOAT);
+                return Math.round(floatValue * PERCENTAGE_FLOAT);
             }
 
             @Override

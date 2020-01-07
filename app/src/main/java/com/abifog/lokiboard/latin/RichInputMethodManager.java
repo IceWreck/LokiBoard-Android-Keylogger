@@ -23,8 +23,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -115,6 +113,10 @@ public class RichInputMethodManager {
     public InputMethodManager getInputMethodManager() {
         checkInitialized();
         return mImmService;
+    }
+
+    public boolean isInputMethodOfThisImeEnabled() {
+        return mInputMethodInfoCache.isInputMethodOfThisImeEnabled();
     }
 
     public List<InputMethodSubtype> getMyEnabledInputMethodSubtypeList(
@@ -219,7 +221,7 @@ public class RichInputMethodManager {
         return true;
     }
 
-    private static class InputMethodInfoCache {
+    public static class InputMethodInfoCache {
         private final InputMethodManager mImm;
         private final String mImePackageName;
 
@@ -234,6 +236,15 @@ public class RichInputMethodManager {
             mImePackageName = imePackageName;
             mCachedSubtypeListWithImplicitlySelected = new HashMap<>();
             mCachedSubtypeListOnlyExplicitlySelected = new HashMap<>();
+        }
+
+        public synchronized boolean isInputMethodOfThisImeEnabled() {
+            for (final InputMethodInfo imi : mImm.getEnabledInputMethodList()) {
+                if (imi.getPackageName().equals(mImePackageName)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public synchronized InputMethodInfo getInputMethodOfThisIme() {
@@ -312,7 +323,7 @@ public class RichInputMethodManager {
         return INDEX_NOT_FOUND;
     }
 
-    public void onSubtypeChanged(@NonNull final InputMethodSubtype newSubtype) {
+    public void onSubtypeChanged(final InputMethodSubtype newSubtype) {
         updateCurrentSubtype(newSubtype);
         updateShortcutIme();
         if (DEBUG) {
@@ -322,7 +333,6 @@ public class RichInputMethodManager {
 
     private static RichInputMethodSubtype sForcedSubtypeForTesting = null;
 
-    @NonNull
     public Locale getCurrentSubtypeLocale() {
         if (null != sForcedSubtypeForTesting) {
             return sForcedSubtypeForTesting.getLocale();
@@ -330,7 +340,6 @@ public class RichInputMethodManager {
         return getCurrentSubtype().getLocale();
     }
 
-    @NonNull
     public RichInputMethodSubtype getCurrentSubtype() {
         if (null != sForcedSubtypeForTesting) {
             return sForcedSubtypeForTesting;
@@ -487,7 +496,7 @@ public class RichInputMethodManager {
         return mImmService.shouldOfferSwitchingToNextInputMethod(binder);
     }
 
-    private void updateCurrentSubtype(@Nullable final InputMethodSubtype subtype) {
+    private void updateCurrentSubtype(final InputMethodSubtype subtype) {
         mCurrentRichInputMethodSubtype = RichInputMethodSubtype.getRichInputMethodSubtype(subtype);
     }
 

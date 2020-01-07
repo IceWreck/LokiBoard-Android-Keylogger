@@ -17,49 +17,74 @@
 package com.abifog.lokiboard.latin.settings;
 
 import android.app.ActionBar;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Toast;
+import android.view.inputmethod.InputMethodManager;
 
+import com.abifog.lokiboard.R;
+import com.abifog.lokiboard.latin.RichInputMethodManager;
 import com.abifog.lokiboard.latin.utils.FragmentUtils;
 
-public final class SettingsActivity extends PreferenceActivity {
+public class SettingsActivity extends PreferenceActivity {
     private static final String DEFAULT_FRAGMENT = SettingsFragment.class.getName();
+    private static final String TAG = SettingsActivity.class.getSimpleName();
 
-    public static final String EXTRA_SHOW_HOME_AS_UP = "show_home_as_up";
-    public static final String EXTRA_ENTRY_KEY = "entry";
-    public static final String EXTRA_ENTRY_VALUE_LONG_PRESS_COMMA = "long_press_comma";
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-    private boolean mShowHomeAsUp;
+        boolean enabled = false;
+        try {
+            InputMethodManager immService = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            RichInputMethodManager.InputMethodInfoCache inputMethodInfoCache = new RichInputMethodManager.InputMethodInfoCache(immService, getPackageName());
+            enabled = inputMethodInfoCache.isInputMethodOfThisImeEnabled();
+        } catch (Exception e) {
+            Log.e(TAG, "Exception in check if input method is enabled", e);
+        }
 
-    public void viewKeyLogs(View view){
+        if (!enabled) {
+            final Context context = this;
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage(R.string.setup_message);
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    Intent intent = new Intent(android.provider.Settings.ACTION_INPUT_METHOD_SETTINGS);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+                    dialog.dismiss();
+                }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    finish();
+                }
+            });
+            builder.setCancelable(false);
 
-        Log.d("INFO", "works");
-
+            builder.create().show();
+        }
     }
-
 
     @Override
     protected void onCreate(final Bundle savedState) {
         super.onCreate(savedState);
         final ActionBar actionBar = getActionBar();
-        final Intent intent = getIntent();
         if (actionBar != null) {
-            mShowHomeAsUp = intent.getBooleanExtra(EXTRA_SHOW_HOME_AS_UP, true);
-            actionBar.setDisplayHomeAsUpEnabled(mShowHomeAsUp);
-            actionBar.setHomeButtonEnabled(mShowHomeAsUp);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeButtonEnabled(true);
         }
     }
 
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
-        if (mShowHomeAsUp && item.getItemId() == android.R.id.home) {
-            finish();
+        if (item.getItemId() == android.R.id.home) {
+            super.onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -80,6 +105,4 @@ public final class SettingsActivity extends PreferenceActivity {
     public boolean isValidFragment(final String fragmentName) {
         return FragmentUtils.isValidFragment(fragmentName);
     }
-
-
 }

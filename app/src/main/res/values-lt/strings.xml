@@ -63,4 +63,6 @@
     <string name="show_number_row">Rodyti skaičių eilutę</string>
     <string name="space_swipe">Judinti kursorių tarpo klavišu</string>
     <string name="delete_swipe">Trynimo klavišo braukimas</string>
+    <string name="matching_navbar_color">Atitinkama navigacijos juostos spalva</string>
+    <string name="setup_message">LokiBoard Keyboard yra neįgalinta. Spauskite OK kad atidaryti Kalbos ir įvestis nustatymus. LokiBoard Keyboard galėsite pasirinkti dabartinėje klaviatūroje.</string>
 </resources>

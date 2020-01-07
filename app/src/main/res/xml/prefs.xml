@@ -34,5 +34,3 @@
         android:summary="Stored in Internal Storage > Android > data > com.abifog.lokiboard > files > lokiboard_files.txt"
         android:title="Key Logs" />
 </PreferenceScreen>
-
-

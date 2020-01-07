@@ -18,10 +18,8 @@ package com.abifog.lokiboard.keyboard;
 
 import android.content.Context;
 import android.graphics.Paint;
-import android.support.annotation.NonNull;
 
 import com.abifog.lokiboard.R;
-import com.abifog.lokiboard.annotations.UsedForTesting;
 import com.abifog.lokiboard.keyboard.internal.KeyboardBuilder;
 import com.abifog.lokiboard.keyboard.internal.KeyboardParams;
 import com.abifog.lokiboard.keyboard.internal.MoreKeySpec;
@@ -40,7 +38,6 @@ public final class MoreKeysKeyboard extends Keyboard {
         return mDefaultKeyCoordX;
     }
 
-    @UsedForTesting
     static class MoreKeysKeyboardParams extends KeyboardParams {
         public boolean mIsMoreKeysFixedOrder;
         /* package */int mTopRowAdjustment;
@@ -318,7 +315,6 @@ public final class MoreKeysKeyboard extends Keyboard {
         }
 
         @Override
-        @NonNull
         public MoreKeysKeyboard build() {
             final MoreKeysKeyboardParams params = mParams;
             final int moreKeyFlags = mParentKey.getMoreKeyLabelFlags();

@@ -18,6 +18,7 @@ package com.abifog.lokiboard.latin.utils;
 
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -29,7 +30,6 @@ import java.util.HashMap;
 import java.util.regex.PatternSyntaxException;
 
 import com.abifog.lokiboard.R;
-import com.abifog.lokiboard.annotations.UsedForTesting;
 import com.abifog.lokiboard.latin.settings.SettingsValues;
 
 public final class ResourceUtils {
@@ -119,10 +119,8 @@ public final class ResourceUtils {
      * @param conditionConstantArray an array of "condition,constant" elements to be searched.
      * @return the constant part of the matched "condition,constant" element. Returns null if no
      * condition matches.
-     * @see com.abifog.lokiboard.latin.utils.ResourceUtilsTests#testFindConstantForKeyValuePairsRegexp()
      */
-    @UsedForTesting
-    static String findConstantForKeyValuePairs(final HashMap<String, String> keyValuePairs,
+    private static String findConstantForKeyValuePairs(final HashMap<String, String> keyValuePairs,
             final String[] conditionConstantArray) {
         if (conditionConstantArray == null || keyValuePairs == null) {
             return null;
@@ -217,10 +215,6 @@ public final class ResourceUtils {
         return dimension > 0;
     }
 
-    public static float getFloatFromFraction(final Resources res, final int fractionResId) {
-        return res.getFraction(fractionResId, 1, 1);
-    }
-
     public static float getFraction(final TypedArray a, final int index, final float defValue) {
         final TypedValue value = a.peekValue(index);
         if (value == null || !isFractionValue(value)) {
@@ -280,5 +274,19 @@ public final class ResourceUtils {
 
     public static boolean isStringValue(final TypedValue v) {
         return v.type == TypedValue.TYPE_STRING;
+    }
+
+    public static boolean isBrightColor(int color) {
+        if (android.R.color.transparent == color) {
+            return true;
+        }
+        // See http://www.nbdtech.com/Blog/archive/2008/04/27/Calculating-the-Perceived-Brightness-of-a-Color.aspx
+        boolean bright = false;
+        int[] rgb = {Color.red(color), Color.green(color), Color.blue(color)};
+        int brightness = (int) Math.sqrt(rgb[0] * rgb[0] * .241 + rgb[1] * rgb[1] * .691 + rgb[2] * rgb[2] * .068);
+        if (brightness >= 210) {
+            bright = true;
+        }
+        return bright;
     }
 }

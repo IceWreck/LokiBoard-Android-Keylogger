@@ -63,4 +63,6 @@
     <string name="show_number_row">Vis separat tallrad</string>
     <string name="space_swipe">Mellomrom-sveip flytter markør</string>
     <string name="delete_swipe">Slette-sveip</string>
+    <string name="matching_navbar_color">Bruk matchende navigasjonslinjefarge</string>
+    <string name="setup_message">LokiBoard Keyboard er ikke aktivert. Trykk OK for å åpne innstillinger for Språk og inndata. Du må velge LokiBoard Keyboard som standardtastatur for å bruke det.</string>
 </resources>

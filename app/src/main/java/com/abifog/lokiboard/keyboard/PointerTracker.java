@@ -18,8 +18,6 @@ package com.abifog.lokiboard.keyboard;
 
 import android.content.res.Resources;
 import android.content.res.TypedArray;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -86,7 +84,6 @@ public final class PointerTracker implements PointerTrackerQueue.Element {
     private final BogusMoveEventDetector mBogusMoveEventDetector = new BogusMoveEventDetector();
 
     // The position and time at which first down event occurred.
-    @NonNull
     private int[] mDownCoordinates = CoordinateUtils.newInstance();
 
     // The current key where this pointer is.
@@ -99,7 +96,7 @@ public final class PointerTracker implements PointerTrackerQueue.Element {
     private int mLastX;
     private int mLastY;
     private int mStartX;
-    private int mStartY;
+    //private int mStartY;
     private long mStartTime;
     private boolean mCursorMoved = false;
 
@@ -300,7 +297,6 @@ public final class PointerTracker implements PointerTrackerQueue.Element {
         return mIsInDraggingFinger;
     }
 
-    @Nullable
     public Key getKey() {
         return mCurrentKey;
     }
@@ -314,7 +310,7 @@ public final class PointerTracker implements PointerTrackerQueue.Element {
         return mKeyDetector.detectHitKey(x, y);
     }
 
-    private void setReleasedKeyGraphics(@Nullable final Key key, final boolean withAnimation) {
+    private void setReleasedKeyGraphics(final Key key, final boolean withAnimation) {
         if (key == null) {
             return;
         }
@@ -343,7 +339,7 @@ public final class PointerTracker implements PointerTrackerQueue.Element {
         }
     }
 
-    private void setPressedKeyGraphics(@Nullable final Key key) {
+    private void setPressedKeyGraphics(final Key key) {
         if (key == null) {
             return;
         }
@@ -379,7 +375,7 @@ public final class PointerTracker implements PointerTrackerQueue.Element {
         }
     }
 
-    public void getLastCoordinates(@NonNull final int[] outCoords) {
+    public void getLastCoordinates(final int[] outCoords) {
         CoordinateUtils.set(outCoords, mLastX, mLastY);
     }
 
@@ -520,7 +516,7 @@ public final class PointerTracker implements PointerTrackerQueue.Element {
             startLongPressTimer(key);
             setPressedKeyGraphics(key);
             mStartX = x;
-            mStartY = y;
+            //mStartY = y;
             mStartTime = System.currentTimeMillis();
         }
     }
@@ -620,6 +616,7 @@ public final class PointerTracker implements PointerTrackerQueue.Element {
 
     private void onMoveEventInternal(final int x, final int y, final long eventTime) {
         final Key oldKey = mCurrentKey;
+
         if (oldKey != null && oldKey.getCode() == Constants.CODE_SPACE && Settings.getInstance().getCurrent().mSpaceSwipeEnabled) {
             //Pointer slider
             int steps = (x - mStartX) / sPointerStep;
@@ -634,17 +631,12 @@ public final class PointerTracker implements PointerTrackerQueue.Element {
 
         if (oldKey != null && oldKey.getCode() == Constants.CODE_DELETE && Settings.getInstance().getCurrent().mDeleteSwipeEnabled) {
             //Delete slider
-            if (x > mStartX) {
-                //Swiped back
-                mStartX = x;
-                return;
-            }
-            int steps = (mStartX - x) / sPointerStep;
-            if (steps > 0) {
+            int steps = (x - mStartX) / sPointerStep;
+            if (steps != 0) {
                 sTimerProxy.cancelKeyTimersOf(this);
                 mCursorMoved = true;
-                mStartX -= steps * sPointerStep;
-                sListener.onDeletePointer(steps);
+                mStartX += steps * sPointerStep;
+                sListener.onMoveDeletePointer(steps);
             }
             return;
         }
@@ -705,6 +697,10 @@ public final class PointerTracker implements PointerTrackerQueue.Element {
         mCurrentRepeatingKeyCode = Constants.NOT_A_CODE;
         // Release the last pressed key.
         setReleasedKeyGraphics(currentKey, true /* withAnimation */);
+
+        if(mCursorMoved && currentKey.getCode() == Constants.CODE_DELETE) {
+            sListener.onUpWithDeletePointerActive();
+        }
 
         if (isShowingMoreKeysPanel()) {
             if (!mIsTrackingForActionDisabled) {

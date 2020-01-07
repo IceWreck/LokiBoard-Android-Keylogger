@@ -16,4 +16,4 @@
 #   public *;
 #}
 
--keep class abifog.lokiboard.R
+-keep class abifog.inputmethod.R

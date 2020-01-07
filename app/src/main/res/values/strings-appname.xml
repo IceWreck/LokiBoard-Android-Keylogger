@@ -19,7 +19,6 @@
 -->
 
 <resources>
-    <string name="english_ime_name" translatable="false">LokiBoard</string>
-    <string name="english_ime_settings" translatable="false">Keyboard Settings</string>
-    <string name="english_ime_setup" translatable="false">Setup Keyboard</string>
+    <string name="english_ime_name" translatable="false">LokiBoard Keyboard</string>
+    <string name="english_ime_settings" translatable="false">LokiBoard Keyboard Settings</string>
 </resources>

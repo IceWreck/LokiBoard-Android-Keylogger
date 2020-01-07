@@ -22,7 +22,6 @@ import android.text.TextUtils;
 
 import java.util.Locale;
 
-import com.abifog.lokiboard.annotations.UsedForTesting;
 import com.abifog.lokiboard.latin.common.Constants;
 import com.abifog.lokiboard.latin.utils.RunInLocale;
 import com.abifog.lokiboard.latin.utils.SubtypeLocaleUtils;
@@ -48,7 +47,6 @@ public final class KeyboardTextsSet {
         setLocale(locale, res, resourcePackageName);
     }
 
-    @UsedForTesting
     public void setLocale(final Locale locale, final Resources res,
             final String resourcePackageName) {
         mResources = res;

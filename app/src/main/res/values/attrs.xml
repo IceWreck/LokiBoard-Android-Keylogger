@@ -32,8 +32,6 @@
         <attr name="moreKeysKeyboardStyle" format="reference" />
         <!-- MoreKeysKeyboardView style -->
         <attr name="moreKeysKeyboardViewStyle" format="reference" />
-        <!-- MoreKeysKeyboardView style for action key -->
-        <attr name="moreKeysKeyboardViewForActionStyle" format="reference" />
     </declare-styleable>
 
     <declare-styleable name="KeyboardView">
@@ -107,8 +105,6 @@
         <attr name="keyPreviewDismissAnimator" format="reference" />
         <!-- Layout resource for more keys keyboard -->
         <attr name="moreKeysKeyboardLayout" format="reference" />
-        <!-- Layout resource for more keys keyboard of action key -->
-        <attr name="moreKeysKeyboardForActionLayout" format="reference" />
         <attr name="backgroundDimAlpha" format="integer" />
         <!-- More keys keyboard will shown at touched point. -->
         <attr name="showMoreKeysKeyboardAtTouchedPoint" format="boolean" />
@@ -238,8 +234,6 @@
             <!-- If true, use functionalTextColor instead of ketTextColor to drawing the label on
                  the key -->
             <flag name="followFunctionalTextColor" value="0x80000" />
-            <!-- Keep aspect ratio of key background. -->
-            <flag name="keepBackgroundAspectRatio" value="0x100000" />
             <!-- If true, disable keyHintLabel. -->
             <flag name="disableKeyHintLabel" value="0x40000000" />
             <!-- If true, disable additionalMoreKeys. -->
