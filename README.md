@@ -38,5 +38,5 @@ Note: You need to have physical access to the device for use.
 This was designed as a proof of concept and not for any malacious purposes.
 
 ## Credits
-Based on the Android Open Source Project Keyboard and Simple Keyboard
+Based on the Android Open Source Project Keyboard and [Simple Keyboard](https://github.com/rkkr/simple-keyboard/)
 
