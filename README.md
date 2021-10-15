@@ -1,5 +1,7 @@
 # LokiBoard-Android-KeyLogger
-Android Keylogging Keyboard
+Offline Android Keylogging Keyboard 
+
+# Support Android 11
 
 ## Download
 
